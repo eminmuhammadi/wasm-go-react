@@ -1,47 +1,20 @@
-import WasmAdapter from "./_lib/WasmAdapter";
-import { useEffect, useState } from "react";
-
-interface IWasm {
-  add: (a: number, b: number) => number;
-}
+import { useState } from "react";
+import { useTypedSelector } from "./store";
+import { Add } from "./store/calculator/actions";
+import store from "./store";
 
 function App() {
+  const calculator = useTypedSelector((state) => state.calculator);
   const [state, setState] = useState({
-    a: 0,
-    b: 0,
-    result: 0,
-    // Dummy call to load the wasm module
-    add: (a: number, b: number): number => {
-      return 0;
-    },
+    ...calculator,
   });
 
   /**
-   * Inject the wasm module into the state
-   */
-  useEffect(() => {
-    const adapter = new WasmAdapter();
-    const wasm = adapter.inject("http://localhost:3000/_wasm/main.wasm");
-
-    wasm.then((exports: WebAssembly.Exports) => {
-      const addFunction = exports.add as IWasm["add"];
-
-      setState((prev) => {
-        return {
-          ...prev,
-          add: addFunction,
-        };
-      });
-    });
-  }, []);
-
-  /**
    * Listen input value changes
-   * @param e 
+   * @param e
    */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
     setState((prev) => {
       return {
         ...prev,
@@ -53,13 +26,8 @@ function App() {
   /**
    * Calculate the result
    */
-  const calculate = () => {
-    setState((prev) => {
-      return {
-        ...prev,
-        result: prev.add(prev.a, prev.b),
-      };
-    });
+  const calculate = async () => {
+    return store.dispatch(await Add(state.a, state.b));
   };
 
   return (
@@ -80,7 +48,7 @@ function App() {
 
         {/* Result */}
         <span style={{ paddingRight: "10px", paddingLeft: "10px" }}>=</span>
-        <input type="number" name="result" value={state.result} disabled />
+        <input type="number" name="result" value={calculator.result} disabled />
       </div>
 
       {/* Button  */}
