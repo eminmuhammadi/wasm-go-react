@@ -34,7 +34,7 @@ function App() {
    * Calculate the result
    */
   const calculate = async () => {
-    return store.dispatch(await Add(state.a, state.b));
+    return store.dispatch(await Add(Number(state.a), Number(state.b)));
   };
 
   return (
